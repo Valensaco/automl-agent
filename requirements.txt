@@ -1,0 +1,15 @@
+# Data + ML
+pandas
+numpy
+scikit-learn
+lightgbm
+ucimlrepo
+
+# Experiment tracking + app
+mlflow
+streamlit
+python-dotenv
+
+# Agents (AutoGen is in maintenance mode, so pin the last stable line)
+autogen-agentchat~=0.7.5
+autogen-ext[anthropic]~=0.7.5
