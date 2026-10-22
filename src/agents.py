@@ -76,7 +76,7 @@ Reply in this exact format and nothing else:
 _THINKING_CACHE: dict[str, dict | None] = {}
 
 
-def _thinking_off(model: str) -> dict | None:
+def _thinking_off(model: str, api_key: str | None = None) -> dict | None:
     """Ask the Models API how this model turns up-front thinking off.
     Newer models use "between_tools"; older ones use "disabled"."""
     if model in _THINKING_CACHE:
@@ -84,7 +84,7 @@ def _thinking_off(model: str) -> dict | None:
     setting: dict | None = {"type": "between_tools"}
     try:
         import anthropic
-        info = anthropic.Anthropic(timeout=10, max_retries=1).get(f"/v1/models/{model}", cast_to=object)
+        info = anthropic.Anthropic(api_key=api_key, timeout=10, max_retries=1).get(f"/v1/models/{model}", cast_to=object)
         types = (info.get("capabilities") or {}).get("thinking", {}).get("types", {})
         if types.get("between_tools", {}).get("supported"):
             setting = {"type": "between_tools"}
@@ -98,12 +98,14 @@ def _thinking_off(model: str) -> dict | None:
     return setting
 
 
-def _client(model: str) -> AnthropicChatCompletionClient:
-    if not os.getenv("ANTHROPIC_API_KEY"):
+def _client(model: str, api_key: str | None = None) -> AnthropicChatCompletionClient:
+    api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY not found. Put it in the .env file.")
-    thinking = _thinking_off(model)
+    thinking = _thinking_off(model, api_key)
     return AnthropicChatCompletionClient(
         model=model,
+        api_key=api_key,
         max_tokens=1024,
         **({"thinking": thinking} if thinking else {}),
         model_info=ModelInfo(vision=False, function_calling=True, json_output=False,
@@ -151,7 +153,8 @@ class Usage:
 
 
 async def run_automl(session: ExperimentSession,
-                     on_event: Callable[[str, dict], None] | None = None) -> dict:
+                     on_event: Callable[[str, dict], None] | None = None,
+                     api_key: str | None = None) -> dict:
     """Run the full agent loop. on_event(kind, data) lets the UI show live progress."""
     emit = on_event or (lambda kind, data: None)
     usage = Usage()
@@ -170,9 +173,9 @@ async def run_automl(session: ExperimentSession,
         last_result.update(r)
         return as_json(r)
 
-    planner = AssistantAgent("planner", model_client=_client(PLANNER_MODEL),
+    planner = AssistantAgent("planner", model_client=_client(PLANNER_MODEL, api_key),
                              system_message=PLANNER_SYSTEM)
-    experimenter = AssistantAgent("experimenter", model_client=_client(EXPERIMENTER_MODEL),
+    experimenter = AssistantAgent("experimenter", model_client=_client(EXPERIMENTER_MODEL, api_key),
                                   tools=[train_and_evaluate], system_message=EXPERIMENTER_SYSTEM,
                                   reflect_on_tool_use=False)
     team = RoundRobinGroupChat([planner, experimenter], max_turns=2)
@@ -217,7 +220,7 @@ async def run_automl(session: ExperimentSession,
     board = session.get_leaderboard(top_n=20)
     if not board:
         raise RuntimeError("No successful experiments; cannot run the final test.")
-    chooser = AssistantAgent("planner", model_client=_client(PLANNER_MODEL),
+    chooser = AssistantAgent("planner", model_client=_client(PLANNER_MODEL, api_key),
                              system_message=FINAL_SYSTEM)
     res = await chooser.run(task="LEADERBOARD:\n" + as_json(_compact_leaderboard(board)))
     usage.add(res.messages, models)
