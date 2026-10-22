@@ -26,9 +26,10 @@ from lightgbm import LGBMClassifier
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (average_precision_score, f1_score, precision_score,
-                             recall_score, roc_auc_score)
+from sklearn.metrics import (average_precision_score, confusion_matrix, f1_score,
+                             precision_score, recall_score, roc_auc_score)
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
@@ -282,32 +283,61 @@ class ExperimentSession:
 
     # ======================= TOOL 4 =======================
     def final_test(self, run_id: str) -> dict:
-        """Retrain the chosen config on train+validation, score on test. ONE TIME ONLY."""
+        """The one-time check. Steps:
+        1. Rebuild the chosen config on TRAIN only and use VALIDATION to
+           (a) pick the decision cutoff and (b) measure feature importance.
+        2. Retrain the same config on TRAIN + VALIDATION (more data).
+        3. Score on TEST once, at the default 0.5 cutoff and the tuned cutoff.
+        """
         if self._test_used:
             return {"error": "Test set already used. It can only be used once."}
         if run_id not in self.history:
             return {"error": "Unknown run_id. Pick one from get_leaderboard()."}
         self._test_used = True
-
         cfg = self.history[run_id]
-        full = pd.concat([self.train, self.val], ignore_index=True)
-        X, y = full[cfg["features"]], full[self.target]
-        pipe = Pipeline([("prep", _preprocessor(X)),
-                         ("model", _build_model(cfg["model_type"], cfg["params"]))])
-        pipe.fit(X, y)
+        feats = cfg["features"]
 
-        test = pd.read_csv(self._test_path)          # first and only read
-        test_m = _metrics(test[self.target], pipe.predict_proba(test[cfg["features"]])[:, 1])
+        # --- step 1: validation-only decisions ---
+        X_tr, y_tr = self.train[feats], self.train[self.target]
+        X_va, y_va = self.val[feats], self.val[self.target]
+        val_pipe = Pipeline([("prep", _preprocessor(X_tr)),
+                             ("model", _build_model(cfg["model_type"], cfg["params"]))])
+        val_pipe.fit(X_tr, y_tr)
+        val_proba = val_pipe.predict_proba(X_va)[:, 1]
+        threshold = _best_threshold(y_va, val_proba)
+
+        imp = permutation_importance(val_pipe, X_va, y_va, scoring="roc_auc",
+                                     n_repeats=5, random_state=SEED, n_jobs=-1)
+        importance = sorted(
+            ({"feature": f, "auc_drop": round(float(m), 4)}
+             for f, m in zip(feats, imp.importances_mean)),
+            key=lambda d: d["auc_drop"], reverse=True)[:10]
+
+        # --- step 2: final model on train + validation ---
+        full = pd.concat([self.train, self.val], ignore_index=True)
+        pipe = Pipeline([("prep", _preprocessor(full[feats])),
+                         ("model", _build_model(cfg["model_type"], cfg["params"]))])
+        pipe.fit(full[feats], full[self.target])
+
+        # --- step 3: test, first and only read ---
+        test = pd.read_csv(self._test_path)
+        y_te = test[self.target]
+        proba = pipe.predict_proba(test[feats])[:, 1]
+        test_default = _metrics(y_te, proba, 0.5)
+        test_tuned = _metrics(y_te, proba, threshold)
+        tn, fp, fn, tp = confusion_matrix(y_te, (proba >= threshold).astype(int)).ravel()
 
         model_path = ARTIFACTS / self.name / "final_model.joblib"
         model_path.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump(pipe, model_path)
+        joblib.dump({"pipeline": pipe, "threshold": threshold, "features": feats}, model_path)
 
         with mlflow.start_run(experiment_id=self.experiment_id, run_name="FINAL-test"):
             mlflow.set_tags({"model_type": cfg["model_type"], "final": "true",
                              "source_run_id": run_id})
             mlflow.log_params({k: str(v) for k, v in cfg["params"].items()})
-            mlflow.log_metrics({f"test_{k}": v for k, v in test_m.items()})
+            mlflow.log_param("threshold", threshold)
+            mlflow.log_metrics({f"test_{k}": v for k, v in test_tuned.items()})
+            mlflow.log_metrics({f"test_default_{k}": v for k, v in test_default.items()})
             mlflow.log_artifact(str(model_path))
 
         val_auc = mlflow.get_run(run_id).data.metrics["val_auc"]
@@ -315,13 +345,27 @@ class ExperimentSession:
             "chosen_run_id": run_id,
             "model_type": cfg["model_type"],
             "params": cfg["params"],
-            "n_features": len(cfg["features"]),
+            "n_features": len(feats),
             "val_auc": val_auc,
-            "test_metrics": test_m,
-            "val_to_test_auc_drop": round(val_auc - test_m["auc"], 4),
+            "threshold": threshold,
+            "test_metrics": test_tuned,
+            "test_metrics_default_0_5": test_default,
+            "confusion_matrix": {"true_negative": int(tn), "false_positive": int(fp),
+                                 "false_negative": int(fn), "true_positive": int(tp)},
+            "test_rows": len(test),
+            "feature_importance": importance,
+            "val_to_test_auc_drop": round(val_auc - test_tuned["auc"], 4),
             "experiments_used": self.used,
-            "model_saved_to": str(model_path),
+            "model_saved_to": str(model_path.relative_to(ROOT)),
         }
+
+
+def _best_threshold(y_true, proba) -> float:
+    """Cutoff that maximizes F1 on validation (balances catching defaulters
+    against false alarms). Searched from 0.05 to 0.95."""
+    grid = np.round(np.arange(0.05, 0.951, 0.01), 2)
+    scores = [f1_score(y_true, (proba >= t).astype(int), zero_division=0) for t in grid]
+    return float(grid[int(np.argmax(scores))])
 
 
 def as_json(obj) -> str:

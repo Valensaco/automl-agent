@@ -24,6 +24,7 @@ from autogen_core.models import ModelInfo
 from autogen_ext.models.anthropic import AnthropicChatCompletionClient
 from dotenv import load_dotenv
 
+from report import write_report
 from tools import MODEL_SPECS, ExperimentSession, as_json
 
 load_dotenv()
@@ -232,6 +233,8 @@ async def run_automl(session: ExperimentSession,
     final = await asyncio.to_thread(session.final_test, run_id)
     summary = {"final": final, "choice": choice, "steps": steps, "leaderboard": board,
                "tokens": usage.tokens, "cost_usd": usage.cost(),
-               "experiment_name": session.name}
+               "experiment_name": session.name, "profile": profile,
+               "models": {"planner": PLANNER_MODEL, "experimenter": EXPERIMENTER_MODEL}}
+    summary["report_path"] = str(await asyncio.to_thread(write_report, summary))
     emit("done", summary)
     return summary
