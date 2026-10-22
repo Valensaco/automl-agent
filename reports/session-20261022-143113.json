@@ -1,0 +1,366 @@
+{
+  "final": {
+    "chosen_run_id": "0fa75dd653154d3b89d2f1dba7bc98e1",
+    "model_type": "lightgbm",
+    "params": {
+      "n_estimators": 600,
+      "learning_rate": 0.02,
+      "num_leaves": 7,
+      "max_depth": 4,
+      "min_child_samples": 150,
+      "subsample": 0.8,
+      "colsample_bytree": 0.6,
+      "reg_lambda": 10.0,
+      "class_weight": null
+    },
+    "n_features": 23,
+    "val_auc": 0.7846,
+    "threshold": 0.28,
+    "test_metrics": {
+      "auc": 0.7807,
+      "pr_auc": 0.5603,
+      "recall": 0.5546,
+      "precision": 0.5276,
+      "f1": 0.5408
+    },
+    "test_metrics_default_0_5": {
+      "auc": 0.7807,
+      "pr_auc": 0.5603,
+      "recall": 0.3625,
+      "precision": 0.6671,
+      "f1": 0.4697
+    },
+    "confusion_matrix": {
+      "true_negative": 4014,
+      "false_positive": 659,
+      "false_negative": 591,
+      "true_positive": 736
+    },
+    "test_rows": 6000,
+    "feature_importance": [
+      {
+        "feature": "PAY_0",
+        "auc_drop": 0.078
+      },
+      {
+        "feature": "LIMIT_BAL",
+        "auc_drop": 0.0241
+      },
+      {
+        "feature": "BILL_AMT1",
+        "auc_drop": 0.0111
+      },
+      {
+        "feature": "PAY_2",
+        "auc_drop": 0.008
+      },
+      {
+        "feature": "PAY_AMT2",
+        "auc_drop": 0.0061
+      },
+      {
+        "feature": "PAY_3",
+        "auc_drop": 0.0058
+      },
+      {
+        "feature": "PAY_4",
+        "auc_drop": 0.004
+      },
+      {
+        "feature": "PAY_AMT3",
+        "auc_drop": 0.0033
+      },
+      {
+        "feature": "PAY_AMT1",
+        "auc_drop": 0.0031
+      },
+      {
+        "feature": "PAY_6",
+        "auc_drop": 0.0029
+      }
+    ],
+    "val_to_test_auc_drop": 0.0039,
+    "experiments_used": 3,
+    "model_saved_to": "mlartifacts/session-20261022-143113/final_model.joblib"
+  },
+  "choice": {
+    "experiment_number": 3,
+    "reason": "Exp 3 has the highest validation AUC (0.7846) and the smallest overfit gap (0.0253), thanks to stronger regularization (shallow trees, high min_child_samples, reg_lambda=10). It is the best on both criteria and the most likely to generalize."
+  },
+  "steps": [
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.05,
+          "num_leaves": 15,
+          "min_child_samples": 50,
+          "subsample": 0.8,
+          "colsample_bytree": 0.8,
+          "reg_lambda": 1.0
+        },
+        "features": null,
+        "reasoning": "With only 3 experiments, start with LightGBM, which is usually strongest on tabular credit-default data; a moderately regularized config (small leaves, high min_child_samples) should limit overfitting on 18k rows."
+      },
+      "result": {
+        "run_id": "6c43b8667a47442aa4e8b3ac383d7b7c",
+        "experiment_number": 1,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.05,
+          "num_leaves": 15,
+          "max_depth": -1,
+          "min_child_samples": 50,
+          "subsample": 0.8,
+          "colsample_bytree": 0.8,
+          "reg_lambda": 1.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7815,
+          "pr_auc": 0.5509,
+          "recall": 0.3602,
+          "precision": 0.6838,
+          "f1": 0.4719
+        },
+        "train_auc": 0.8656,
+        "overfit_gap": 0.0841,
+        "fit_seconds": 0.79,
+        "budget_remaining": 2
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 400,
+          "learning_rate": 0.03,
+          "num_leaves": 7,
+          "max_depth": 4,
+          "min_child_samples": 100,
+          "subsample": 0.8,
+          "colsample_bytree": 0.7,
+          "reg_lambda": 5.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "With only 2 experiments left, I'm staying on LightGBM and regularizing, since the 0.084 overfit gap suggests the first config memorizes; fewer leaves, shallower depth, higher min_child_samples, lower learning rate, and stronger L2 should improve generalization on this noisy credit-default data."
+      },
+      "result": {
+        "run_id": "25655305676345ebaa18ef9492bc4555",
+        "experiment_number": 2,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 400,
+          "learning_rate": 0.03,
+          "num_leaves": 7,
+          "max_depth": 4,
+          "min_child_samples": 100,
+          "subsample": 0.8,
+          "colsample_bytree": 0.7,
+          "reg_lambda": 5.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7838,
+          "pr_auc": 0.5536,
+          "recall": 0.3527,
+          "precision": 0.6872,
+          "f1": 0.4661
+        },
+        "train_auc": 0.8122,
+        "overfit_gap": 0.0284,
+        "fit_seconds": 0.49,
+        "budget_remaining": 1
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 600,
+          "learning_rate": 0.02,
+          "num_leaves": 7,
+          "max_depth": 4,
+          "min_child_samples": 150,
+          "subsample": 0.8,
+          "colsample_bytree": 0.6,
+          "reg_lambda": 10.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Regularized config (exp 2) is best with a small overfit gap of 0.028, so I'll refine it with a lower learning rate, more trees, higher min_child_samples/reg_lambda, and slightly lower colsample to squeeze out a bit more generalization."
+      },
+      "result": {
+        "run_id": "0fa75dd653154d3b89d2f1dba7bc98e1",
+        "experiment_number": 3,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 600,
+          "learning_rate": 0.02,
+          "num_leaves": 7,
+          "max_depth": 4,
+          "min_child_samples": 150,
+          "subsample": 0.8,
+          "colsample_bytree": 0.6,
+          "reg_lambda": 10.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7846,
+          "pr_auc": 0.554,
+          "recall": 0.3534,
+          "precision": 0.6807,
+          "f1": 0.4653
+        },
+        "train_auc": 0.8099,
+        "overfit_gap": 0.0253,
+        "fit_seconds": 0.72,
+        "budget_remaining": 0
+      }
+    }
+  ],
+  "leaderboard": [
+    {
+      "rank": 1,
+      "run_id": "0fa75dd653154d3b89d2f1dba7bc98e1",
+      "experiment_number": 3,
+      "model_type": "lightgbm",
+      "val_auc": 0.7846,
+      "val_pr_auc": 0.554,
+      "val_recall": 0.3534,
+      "train_auc": 0.8099,
+      "n_features": 23,
+      "params": {
+        "colsample_bytree": "0.6",
+        "num_leaves": "7",
+        "subsample": "0.8",
+        "learning_rate": "0.02",
+        "n_estimators": "600",
+        "reg_lambda": "10.0",
+        "class_weight": "None",
+        "min_child_samples": "150",
+        "max_depth": "4"
+      },
+      "notes": "Regularized config (exp 2) is best with a small overfit gap of 0.028, so I'll refine it with a lower learning rate, more trees, higher min_child_samples/reg_lambda, and slightly lower colsample to squeeze out a bit more generalization."
+    },
+    {
+      "rank": 2,
+      "run_id": "25655305676345ebaa18ef9492bc4555",
+      "experiment_number": 2,
+      "model_type": "lightgbm",
+      "val_auc": 0.7838,
+      "val_pr_auc": 0.5536,
+      "val_recall": 0.3527,
+      "train_auc": 0.8122,
+      "n_features": 23,
+      "params": {
+        "colsample_bytree": "0.7",
+        "num_leaves": "7",
+        "subsample": "0.8",
+        "learning_rate": "0.03",
+        "n_estimators": "400",
+        "reg_lambda": "5.0",
+        "class_weight": "None",
+        "min_child_samples": "100",
+        "max_depth": "4"
+      },
+      "notes": "With only 2 experiments left, staying on LightGBM and regularizing, since the 0.084 overfit gap suggests the first config memorizes; fewer leaves, shallower depth, higher min_child_samples, lower learning rate, and stronger L2 should improve generalization on this noisy credit-default data."
+    },
+    {
+      "rank": 3,
+      "run_id": "6c43b8667a47442aa4e8b3ac383d7b7c",
+      "experiment_number": 1,
+      "model_type": "lightgbm",
+      "val_auc": 0.7815,
+      "val_pr_auc": 0.5509,
+      "val_recall": 0.3602,
+      "train_auc": 0.8656,
+      "n_features": 23,
+      "params": {
+        "colsample_bytree": "0.8",
+        "num_leaves": "15",
+        "subsample": "0.8",
+        "learning_rate": "0.05",
+        "n_estimators": "300",
+        "reg_lambda": "1.0",
+        "class_weight": "None",
+        "min_child_samples": "50",
+        "max_depth": "-1"
+      },
+      "notes": "With only 3 experiments, start with LightGBM, which is usually strongest on tabular credit-default data; a moderately regularized config (small leaves, high min_child_samples) should limit overfitting on 18k rows."
+    }
+  ],
+  "tokens": {
+    "claude-sonnet-5-5": [
+      6052,
+      761
+    ],
+    "claude-haiku-5-5": [
+      6729,
+      915
+    ]
+  },
+  "cost_usd": 0.0208,
+  "experiment_name": "session-20261022-143113",
+  "profile": {
+    "rows_train": 18000,
+    "rows_validation": 6000,
+    "n_features": 23,
+    "target": "default",
+    "positive_rate": 0.2212,
+    "numeric_features": [
+      "LIMIT_BAL",
+      "SEX",
+      "EDUCATION",
+      "MARRIAGE",
+      "AGE",
+      "PAY_0",
+      "PAY_2",
+      "PAY_3",
+      "PAY_4",
+      "PAY_5",
+      "PAY_6",
+      "BILL_AMT1",
+      "BILL_AMT2",
+      "BILL_AMT3",
+      "BILL_AMT4",
+      "BILL_AMT5",
+      "BILL_AMT6",
+      "PAY_AMT1",
+      "PAY_AMT2",
+      "PAY_AMT3",
+      "PAY_AMT4",
+      "PAY_AMT5",
+      "PAY_AMT6"
+    ],
+    "categorical_features": [],
+    "missing_values": {},
+    "top_correlations_with_target": {
+      "PAY_0": 0.335,
+      "PAY_2": 0.264,
+      "PAY_3": 0.238,
+      "PAY_4": 0.217,
+      "PAY_5": 0.202,
+      "PAY_6": 0.185,
+      "LIMIT_BAL": 0.165,
+      "PAY_AMT1": 0.071
+    },
+    "models_available": {
+      "logistic_regression": "Linear baseline (scikit-learn). Fast, interpretable.",
+      "random_forest": "Bagged decision trees (scikit-learn).",
+      "lightgbm": "Gradient-boosted trees (LightGBM). Usually strongest on tables.",
+      "mlp": "Small neural network (scikit-learn MLPClassifier)."
+    },
+    "budget": 3
+  },
+  "models": {
+    "planner": "claude-sonnet-5-5",
+    "experimenter": "claude-haiku-5-5"
+  }
+}
