@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- AutoML Agent project ---
+data/
+mlruns/
+mlartifacts/
+mlflow.db
+.venv/
