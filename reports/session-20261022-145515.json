@@ -1,0 +1,1175 @@
+{
+  "final": {
+    "chosen_run_id": "7ffffe57254f4563b0ece90de1d9447a",
+    "model_type": "lightgbm",
+    "params": {
+      "n_estimators": 900,
+      "learning_rate": 0.015,
+      "num_leaves": 12,
+      "max_depth": 5,
+      "min_child_samples": 120,
+      "subsample": 0.7,
+      "colsample_bytree": 0.3,
+      "reg_lambda": 25.0,
+      "class_weight": null
+    },
+    "n_features": 23,
+    "val_auc": 0.7865,
+    "threshold": 0.3,
+    "test_metrics": {
+      "auc": 0.7799,
+      "pr_auc": 0.5604,
+      "recall": 0.5418,
+      "precision": 0.5398,
+      "f1": 0.5408
+    },
+    "test_metrics_default_0_5": {
+      "auc": 0.7799,
+      "pr_auc": 0.5604,
+      "recall": 0.3564,
+      "precision": 0.6579,
+      "f1": 0.4624
+    },
+    "confusion_matrix": {
+      "true_negative": 4060,
+      "false_positive": 613,
+      "false_negative": 608,
+      "true_positive": 719
+    },
+    "test_rows": 6000,
+    "feature_importance": [
+      {
+        "feature": "PAY_0",
+        "auc_drop": 0.0728
+      },
+      {
+        "feature": "LIMIT_BAL",
+        "auc_drop": 0.0224
+      },
+      {
+        "feature": "BILL_AMT1",
+        "auc_drop": 0.0088
+      },
+      {
+        "feature": "PAY_AMT2",
+        "auc_drop": 0.007
+      },
+      {
+        "feature": "PAY_2",
+        "auc_drop": 0.0064
+      },
+      {
+        "feature": "PAY_3",
+        "auc_drop": 0.0061
+      },
+      {
+        "feature": "PAY_AMT1",
+        "auc_drop": 0.0055
+      },
+      {
+        "feature": "PAY_4",
+        "auc_drop": 0.0047
+      },
+      {
+        "feature": "PAY_AMT3",
+        "auc_drop": 0.0039
+      },
+      {
+        "feature": "PAY_5",
+        "auc_drop": 0.0028
+      }
+    ],
+    "val_to_test_auc_drop": 0.0066,
+    "experiments_used": 15,
+    "model_saved_to": "mlartifacts/session-20261022-145515/final_model.joblib"
+  },
+  "choice": {
+    "experiment_number": 9,
+    "reason": "Highest validation AUC (0.7865) with a modest overfit gap (0.034); the nearby configurations with smaller gaps (exp 13, 12) are within 0.0006 AUC, which is within noise, so there is no clear reason to trade away the top validation score."
+  },
+  "steps": [
+    {
+      "plan": {
+        "model_type": "logistic_regression",
+        "params": {
+          "C": 1.0,
+          "max_iter": 500
+        },
+        "features": null,
+        "reasoning": "Start with a fast linear baseline to establish a reference validation AUC before exploring tree and neural model families."
+      },
+      "result": {
+        "run_id": "bf23223c03654bab9f866877128bd7ff",
+        "experiment_number": 1,
+        "model_type": "logistic_regression",
+        "params": {
+          "C": 1.0,
+          "class_weight": null,
+          "max_iter": 500
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7242,
+          "pr_auc": 0.4978,
+          "recall": 0.2487,
+          "precision": 0.719,
+          "f1": 0.3695
+        },
+        "train_auc": 0.73,
+        "overfit_gap": 0.0058,
+        "fit_seconds": 0.07,
+        "budget_remaining": 14
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.05,
+          "num_leaves": 31,
+          "max_depth": -1,
+          "min_child_samples": 20,
+          "subsample": 0.8,
+          "colsample_bytree": 0.8,
+          "reg_lambda": 1.0
+        },
+        "features": null,
+        "reasoning": "Linear baseline gives 0.724 with no overfit; try LightGBM with moderate defaults to see how much non-linear signal exists in the PAY_* and bill features."
+      },
+      "result": {
+        "run_id": "5ee0e6731a7741ab889171c29c8de4bf",
+        "experiment_number": 2,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 300,
+          "learning_rate": 0.05,
+          "num_leaves": 31,
+          "max_depth": -1,
+          "min_child_samples": 20,
+          "subsample": 0.8,
+          "colsample_bytree": 0.8,
+          "reg_lambda": 1.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.781,
+          "pr_auc": 0.5516,
+          "recall": 0.3587,
+          "precision": 0.6657,
+          "f1": 0.4662
+        },
+        "train_auc": 0.9224,
+        "overfit_gap": 0.1414,
+        "fit_seconds": 1.24,
+        "budget_remaining": 13
+      }
+    },
+    {
+      "plan": {
+        "model_type": "random_forest",
+        "params": {
+          "n_estimators": 300,
+          "max_depth": 8,
+          "max_features": "sqrt",
+          "min_samples_leaf": 20,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Still need to see how random forest and mlp perform; a moderately regularized RF gives a second tree-based reference point before I regularize LightGBM to address its 0.14 overfit gap."
+      },
+      "result": {
+        "run_id": "431c600b29d04becba52f51546425a47",
+        "experiment_number": 3,
+        "model_type": "random_forest",
+        "params": {
+          "n_estimators": 300,
+          "max_depth": 8,
+          "min_samples_leaf": 20,
+          "max_features": "sqrt",
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7815,
+          "pr_auc": 0.5522,
+          "recall": 0.3444,
+          "precision": 0.6872,
+          "f1": 0.4588
+        },
+        "train_auc": 0.8128,
+        "overfit_gap": 0.0313,
+        "fit_seconds": 0.61,
+        "budget_remaining": 12
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 400,
+          "learning_rate": 0.03,
+          "num_leaves": 8,
+          "max_depth": 4,
+          "min_child_samples": 100,
+          "colsample_bytree": 0.7,
+          "subsample": 0.8,
+          "reg_lambda": 10.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "The default LightGBM overfits heavily (gap 0.14) yet matches the RF on val AUC, so a strongly regularized version (few leaves, shallow depth, high min_child_samples, higher lambda, lower learning rate) should generalize better and likely beat 0.7815."
+      },
+      "result": {
+        "run_id": "ffe433777d6b416680dee2944f83fcdb",
+        "experiment_number": 4,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 400,
+          "learning_rate": 0.03,
+          "num_leaves": 8,
+          "max_depth": 4,
+          "min_child_samples": 100,
+          "subsample": 0.8,
+          "colsample_bytree": 0.7,
+          "reg_lambda": 10.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7834,
+          "pr_auc": 0.5552,
+          "recall": 0.3512,
+          "precision": 0.6904,
+          "f1": 0.4655
+        },
+        "train_auc": 0.8138,
+        "overfit_gap": 0.0304,
+        "fit_seconds": 0.53,
+        "budget_remaining": 11
+      }
+    },
+    {
+      "plan": {
+        "model_type": "mlp",
+        "params": {
+          "hidden_layer_sizes": [
+            64,
+            32
+          ],
+          "alpha": 0.001,
+          "learning_rate_init": 0.001,
+          "max_iter": 300
+        },
+        "features": null,
+        "reasoning": "MLP is the only model family not yet tried; I need to know whether it carries any signal before focusing on LightGBM refinement. LightGBM (0.7834) and RF (0.7815) are close, so the remaining headroom is likely small and tuning comes after this family check."
+      },
+      "result": {
+        "run_id": "191d88a4e26e416189b94b52e67eb7e1",
+        "experiment_number": 5,
+        "model_type": "mlp",
+        "params": {
+          "hidden_layer_sizes": [
+            64,
+            32
+          ],
+          "alpha": 0.001,
+          "learning_rate_init": 0.001,
+          "max_iter": 300
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7668,
+          "pr_auc": 0.5258,
+          "recall": 0.3828,
+          "precision": 0.6521,
+          "f1": 0.4824
+        },
+        "train_auc": 0.7904,
+        "overfit_gap": 0.0236,
+        "fit_seconds": 0.45,
+        "budget_remaining": 10
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "num_leaves": 6,
+          "max_depth": 3,
+          "min_child_samples": 150,
+          "learning_rate": 0.02,
+          "n_estimators": 700,
+          "subsample": 0.8,
+          "colsample_bytree": 0.6,
+          "reg_lambda": 20.0,
+          "class_weight": null
+        },
+        "reasoning": "The regularized LightGBM (exp 4) is best with a small overfit gap, so I'm pushing further in that direction: shallower trees, more min_child_samples, lower learning rate with more trees, and stronger L2 to see if the trend continues."
+      },
+      "result": {
+        "run_id": "6b63f7bec5194079a15ca3536f092eaa",
+        "experiment_number": 6,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 700,
+          "learning_rate": 0.02,
+          "num_leaves": 6,
+          "max_depth": 3,
+          "min_child_samples": 150,
+          "subsample": 0.8,
+          "colsample_bytree": 0.6,
+          "reg_lambda": 20.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7827,
+          "pr_auc": 0.5492,
+          "recall": 0.3549,
+          "precision": 0.6826,
+          "f1": 0.467
+        },
+        "train_auc": 0.805,
+        "overfit_gap": 0.0223,
+        "fit_seconds": 0.69,
+        "budget_remaining": 9
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 500,
+          "learning_rate": 0.03,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 100,
+          "subsample": 0.8,
+          "colsample_bytree": 0.5,
+          "reg_lambda": 10.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Exp 4 (leaves 8, depth 4) beat the more constrained exp 6, so I'm slightly raising capacity (leaves 12, depth 5) while lowering colsample to 0.5 for diversity; gaps are small, so there's room for a bit more complexity."
+      },
+      "result": {
+        "run_id": "8fcb3d3f46e14d32a2a2c1960125113c",
+        "experiment_number": 7,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 500,
+          "learning_rate": 0.03,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 100,
+          "subsample": 0.8,
+          "colsample_bytree": 0.5,
+          "reg_lambda": 10.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7851,
+          "pr_auc": 0.5569,
+          "recall": 0.3549,
+          "precision": 0.6836,
+          "f1": 0.4673
+        },
+        "train_auc": 0.8325,
+        "overfit_gap": 0.0474,
+        "fit_seconds": 0.85,
+        "budget_remaining": 8
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 600,
+          "learning_rate": 0.02,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 120,
+          "subsample": 0.8,
+          "colsample_bytree": 0.4,
+          "reg_lambda": 15.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Exp 7 (colsample 0.5, depth 5) is best, and lower colsample seems to help. I'm pushing it to 0.4 with a slower learning rate, slightly more min_child_samples, and stronger reg_lambda to keep the overfit gap in check while adding trees."
+      },
+      "result": {
+        "run_id": "49b3f034e4204dbe9193d714fe72cb60",
+        "experiment_number": 8,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 600,
+          "learning_rate": 0.02,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 120,
+          "subsample": 0.8,
+          "colsample_bytree": 0.4,
+          "reg_lambda": 15.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7853,
+          "pr_auc": 0.5605,
+          "recall": 0.3519,
+          "precision": 0.6878,
+          "f1": 0.4656
+        },
+        "train_auc": 0.8222,
+        "overfit_gap": 0.0369,
+        "fit_seconds": 0.99,
+        "budget_remaining": 7
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 120,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Lower colsample (0.5->0.4) improved val AUC with a smaller gap, so push further: colsample 0.3, stronger L2, lower learning rate with more trees, and slightly lower subsample for extra regularization."
+      },
+      "result": {
+        "run_id": "7ffffe57254f4563b0ece90de1d9447a",
+        "experiment_number": 9,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 120,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7865,
+          "pr_auc": 0.558,
+          "recall": 0.3527,
+          "precision": 0.6812,
+          "f1": 0.4647
+        },
+        "train_auc": 0.8204,
+        "overfit_gap": 0.0339,
+        "fit_seconds": 1.47,
+        "budget_remaining": 6
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 1200,
+          "learning_rate": 0.01,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 150,
+          "subsample": 0.7,
+          "colsample_bytree": 0.25,
+          "reg_lambda": 35.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "The trend from exp 7 to 8 to 9 shows that lower colsample, a lower learning rate, more trees and stronger regularization keep improving val AUC. I am extending this direction with a slightly lower colsample (0.25), more trees at an even lower learning rate, and higher lambda and min_child_samples."
+      },
+      "result": {
+        "run_id": "4f58a3484bf048558566d76553304c21",
+        "experiment_number": 10,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 1200,
+          "learning_rate": 0.01,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 150,
+          "subsample": 0.7,
+          "colsample_bytree": 0.25,
+          "reg_lambda": 35.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7842,
+          "pr_auc": 0.5547,
+          "recall": 0.3549,
+          "precision": 0.6876,
+          "f1": 0.4682
+        },
+        "train_auc": 0.8138,
+        "overfit_gap": 0.0296,
+        "fit_seconds": 1.92,
+        "budget_remaining": 5
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 800,
+          "learning_rate": 0.015,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 90,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Exp 9 is the best, and exp 10 showed too much regularization (min_child_samples 150, colsample 0.25) slightly hurts. I'm keeping exp 9's settings but lowering min_child_samples to 90 and trimming trees to 800, to test whether slightly more capacity helps at a tolerable overfit gap."
+      },
+      "result": {
+        "run_id": "5915eb8aefc2479cb9db1d3ee8b0fbec",
+        "experiment_number": 11,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 800,
+          "learning_rate": 0.015,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 90,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7858,
+          "pr_auc": 0.5572,
+          "recall": 0.3527,
+          "precision": 0.6822,
+          "f1": 0.465
+        },
+        "train_auc": 0.8179,
+        "overfit_gap": 0.0321,
+        "fit_seconds": 1.32,
+        "budget_remaining": 4
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 1000,
+          "learning_rate": 0.012,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 140,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 30.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Exp 9 (mcs=120, lambda=25, lr=0.015) is best, and exp 11 with a lower min_child_samples=90 was slightly worse, while exp 10 with mcs=150 and a lower lr/colsample was also worse. I'm trying mcs=140 with slightly lower lr and more trees and a bit more lambda to find out whether the sweet spot lies between them."
+      },
+      "result": {
+        "run_id": "f51605672458429ab9b5d07d00f19914",
+        "experiment_number": 12,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 1000,
+          "learning_rate": 0.012,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 140,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 30.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7859,
+          "pr_auc": 0.5547,
+          "recall": 0.3527,
+          "precision": 0.6763,
+          "f1": 0.4636
+        },
+        "train_auc": 0.8166,
+        "overfit_gap": 0.0307,
+        "fit_seconds": 1.63,
+        "budget_remaining": 3
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 10,
+          "max_depth": 4,
+          "min_child_samples": 120,
+          "subsample": 0.7,
+          "colsample_bytree": 0.35,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Refine the best config (exp 9) with slightly smaller trees (num_leaves 10, depth 4) and colsample 0.35, since the LightGBM results are on a plateau around 0.786 and small regularization tweaks around that optimum may squeeze out a bit more validation AUC."
+      },
+      "result": {
+        "run_id": "81d4eede0bcf40d0adb5a3b8b1576eda",
+        "experiment_number": 13,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 10,
+          "max_depth": 4,
+          "min_child_samples": 120,
+          "subsample": 0.7,
+          "colsample_bytree": 0.35,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7859,
+          "pr_auc": 0.5597,
+          "recall": 0.3512,
+          "precision": 0.6883,
+          "f1": 0.4651
+        },
+        "train_auc": 0.8139,
+        "overfit_gap": 0.028,
+        "fit_seconds": 1.21,
+        "budget_remaining": 2
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 120,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "features": [
+          "LIMIT_BAL",
+          "SEX",
+          "EDUCATION",
+          "MARRIAGE",
+          "AGE",
+          "PAY_0",
+          "PAY_2",
+          "PAY_3",
+          "PAY_4",
+          "PAY_5",
+          "PAY_6",
+          "BILL_AMT1",
+          "BILL_AMT2",
+          "BILL_AMT3",
+          "PAY_AMT1",
+          "PAY_AMT2",
+          "PAY_AMT3",
+          "PAY_AMT4",
+          "PAY_AMT5",
+          "PAY_AMT6"
+        ],
+        "reasoning": "Keep the best config (exp 9) and drop the three older bill amounts (BILL_AMT4-6), which are highly collinear with the recent ones and likely noise, to see if a leaner feature set squeezes out a bit more validation AUC."
+      },
+      "result": {
+        "run_id": "82827777200b4c34b1bcf1e1f6e3250f",
+        "experiment_number": 14,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 12,
+          "max_depth": 5,
+          "min_child_samples": 120,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "n_features": 20,
+        "val_metrics": {
+          "auc": 0.7856,
+          "pr_auc": 0.5524,
+          "recall": 0.3399,
+          "precision": 0.6833,
+          "f1": 0.454
+        },
+        "train_auc": 0.8177,
+        "overfit_gap": 0.0321,
+        "fit_seconds": 1.46,
+        "budget_remaining": 1
+      }
+    },
+    {
+      "plan": {
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 14,
+          "max_depth": 5,
+          "min_child_samples": 130,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "features": null,
+        "reasoning": "Final refinement of the best config (exp 9): slightly more leaves (14 vs 12) and min_child_samples 130 to nudge capacity while keeping the overfit gap small; all features kept since dropping 3 didn't help."
+      },
+      "result": {
+        "run_id": "b316d9a8747a437ba65f6576dea6e91f",
+        "experiment_number": 15,
+        "model_type": "lightgbm",
+        "params": {
+          "n_estimators": 900,
+          "learning_rate": 0.015,
+          "num_leaves": 14,
+          "max_depth": 5,
+          "min_child_samples": 130,
+          "subsample": 0.7,
+          "colsample_bytree": 0.3,
+          "reg_lambda": 25.0,
+          "class_weight": null
+        },
+        "n_features": 23,
+        "val_metrics": {
+          "auc": 0.7862,
+          "pr_auc": 0.5575,
+          "recall": 0.3549,
+          "precision": 0.6767,
+          "f1": 0.4656
+        },
+        "train_auc": 0.8238,
+        "overfit_gap": 0.0376,
+        "fit_seconds": 1.6,
+        "budget_remaining": 0
+      }
+    }
+  ],
+  "leaderboard": [
+    {
+      "rank": 1,
+      "run_id": "7ffffe57254f4563b0ece90de1d9447a",
+      "experiment_number": 9,
+      "model_type": "lightgbm",
+      "val_auc": 0.7865,
+      "val_pr_auc": 0.558,
+      "val_recall": 0.3527,
+      "train_auc": 0.8204,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "120",
+        "colsample_bytree": "0.3",
+        "n_estimators": "900",
+        "subsample": "0.7",
+        "learning_rate": "0.015",
+        "reg_lambda": "25.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "Lower colsample (0.5->0.4) improved val AUC with a smaller gap, so push further: colsample 0.3, stronger L2, lower learning rate with more trees, and slightly lower subsample for extra regularization."
+    },
+    {
+      "rank": 2,
+      "run_id": "b316d9a8747a437ba65f6576dea6e91f",
+      "experiment_number": 15,
+      "model_type": "lightgbm",
+      "val_auc": 0.7862,
+      "val_pr_auc": 0.5575,
+      "val_recall": 0.3549,
+      "train_auc": 0.8238,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "130",
+        "colsample_bytree": "0.3",
+        "n_estimators": "900",
+        "subsample": "0.7",
+        "learning_rate": "0.015",
+        "reg_lambda": "25.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "14"
+      },
+      "notes": "Final refinement of the best config (exp 9): slightly more leaves (14 vs 12) and min_child_samples 130 to nudge capacity while keeping the overfit gap small; all features kept since dropping 3 didn't help."
+    },
+    {
+      "rank": 3,
+      "run_id": "81d4eede0bcf40d0adb5a3b8b1576eda",
+      "experiment_number": 13,
+      "model_type": "lightgbm",
+      "val_auc": 0.7859,
+      "val_pr_auc": 0.5597,
+      "val_recall": 0.3512,
+      "train_auc": 0.8139,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "120",
+        "colsample_bytree": "0.35",
+        "n_estimators": "900",
+        "subsample": "0.7",
+        "learning_rate": "0.015",
+        "reg_lambda": "25.0",
+        "max_depth": "4",
+        "class_weight": "None",
+        "num_leaves": "10"
+      },
+      "notes": "Refine the best config (exp 9) with slightly smaller trees (num_leaves 10, depth 4) and colsample 0.35, since the LightGBM results are on a plateau around 0.786 and small regularization tweaks around that optimum may squeeze out a bit more validation AUC."
+    },
+    {
+      "rank": 4,
+      "run_id": "f51605672458429ab9b5d07d00f19914",
+      "experiment_number": 12,
+      "model_type": "lightgbm",
+      "val_auc": 0.7859,
+      "val_pr_auc": 0.5547,
+      "val_recall": 0.3527,
+      "train_auc": 0.8166,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "140",
+        "colsample_bytree": "0.3",
+        "n_estimators": "1000",
+        "subsample": "0.7",
+        "learning_rate": "0.012",
+        "reg_lambda": "30.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "Exp 9 (mcs=120, lambda=25, lr=0.015) is best, and exp 11 with a lower min_child_samples=90 was slightly worse, while exp 10 with mcs=150 and a lower lr/colsample was also worse. I'm trying mcs=140 with slightly lower lr and more trees and a bit more lambda to find out whether the sweet spot lies between them."
+    },
+    {
+      "rank": 5,
+      "run_id": "5915eb8aefc2479cb9db1d3ee8b0fbec",
+      "experiment_number": 11,
+      "model_type": "lightgbm",
+      "val_auc": 0.7858,
+      "val_pr_auc": 0.5572,
+      "val_recall": 0.3527,
+      "train_auc": 0.8179,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "90",
+        "colsample_bytree": "0.3",
+        "n_estimators": "800",
+        "subsample": "0.7",
+        "learning_rate": "0.015",
+        "reg_lambda": "25.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "Exp 9 is the best, and exp 10 showed too much regularization (min_child_samples 150, colsample 0.25) slightly hurts. Keeping exp 9's settings but lowering min_child_samples to 90 and trimming trees to 800, to test whether slightly more capacity helps at a tolerable overfit gap."
+    },
+    {
+      "rank": 6,
+      "run_id": "82827777200b4c34b1bcf1e1f6e3250f",
+      "experiment_number": 14,
+      "model_type": "lightgbm",
+      "val_auc": 0.7856,
+      "val_pr_auc": 0.5524,
+      "val_recall": 0.3399,
+      "train_auc": 0.8177,
+      "n_features": 20,
+      "params": {
+        "min_child_samples": "120",
+        "colsample_bytree": "0.3",
+        "n_estimators": "900",
+        "subsample": "0.7",
+        "learning_rate": "0.015",
+        "reg_lambda": "25.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "Keep the best config (exp 9) and drop the three older bill amounts (BILL_AMT4-6), which are highly collinear with the recent ones and likely noise, to see if a leaner feature set squeezes out a bit more validation AUC."
+    },
+    {
+      "rank": 7,
+      "run_id": "49b3f034e4204dbe9193d714fe72cb60",
+      "experiment_number": 8,
+      "model_type": "lightgbm",
+      "val_auc": 0.7853,
+      "val_pr_auc": 0.5605,
+      "val_recall": 0.3519,
+      "train_auc": 0.8222,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "120",
+        "colsample_bytree": "0.4",
+        "n_estimators": "600",
+        "subsample": "0.8",
+        "learning_rate": "0.02",
+        "reg_lambda": "15.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "Exp 7 (colsample 0.5, depth 5) is best, and lower colsample seems to help. Pushing it to 0.4 with a slower learning rate, slightly more min_child_samples, and stronger reg_lambda to keep the overfit gap in check while adding trees."
+    },
+    {
+      "rank": 8,
+      "run_id": "8fcb3d3f46e14d32a2a2c1960125113c",
+      "experiment_number": 7,
+      "model_type": "lightgbm",
+      "val_auc": 0.7851,
+      "val_pr_auc": 0.5569,
+      "val_recall": 0.3549,
+      "train_auc": 0.8325,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "100",
+        "colsample_bytree": "0.5",
+        "n_estimators": "500",
+        "subsample": "0.8",
+        "learning_rate": "0.03",
+        "reg_lambda": "10.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "Exp 4 (leaves 8, depth 4) beat the more constrained exp 6, so I'm slightly raising capacity (leaves 12, depth 5) while lowering colsample to 0.5 for diversity; gaps are small, so there's room for a bit more complexity."
+    },
+    {
+      "rank": 9,
+      "run_id": "4f58a3484bf048558566d76553304c21",
+      "experiment_number": 10,
+      "model_type": "lightgbm",
+      "val_auc": 0.7842,
+      "val_pr_auc": 0.5547,
+      "val_recall": 0.3549,
+      "train_auc": 0.8138,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "150",
+        "colsample_bytree": "0.25",
+        "n_estimators": "1200",
+        "subsample": "0.7",
+        "learning_rate": "0.01",
+        "reg_lambda": "35.0",
+        "max_depth": "5",
+        "class_weight": "None",
+        "num_leaves": "12"
+      },
+      "notes": "The trend from exp 7 to 8 to 9 shows that lower colsample, a lower learning rate, more trees and stronger regularization keep improving val AUC. I am extending this direction with a slightly lower colsample (0.25), more trees at an even lower learning rate, and higher lambda and min_child_samples."
+    },
+    {
+      "rank": 10,
+      "run_id": "ffe433777d6b416680dee2944f83fcdb",
+      "experiment_number": 4,
+      "model_type": "lightgbm",
+      "val_auc": 0.7834,
+      "val_pr_auc": 0.5552,
+      "val_recall": 0.3512,
+      "train_auc": 0.8138,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "100",
+        "colsample_bytree": "0.7",
+        "n_estimators": "400",
+        "subsample": "0.8",
+        "learning_rate": "0.03",
+        "reg_lambda": "10.0",
+        "max_depth": "4",
+        "class_weight": "None",
+        "num_leaves": "8"
+      },
+      "notes": "The default LightGBM overfits heavily (gap 0.14) yet matches the RF on val AUC, so a strongly regularized version (few leaves, shallow depth, high min_child_samples, higher lambda, lower learning rate) should generalize better and likely beat 0.7815."
+    },
+    {
+      "rank": 11,
+      "run_id": "6b63f7bec5194079a15ca3536f092eaa",
+      "experiment_number": 6,
+      "model_type": "lightgbm",
+      "val_auc": 0.7827,
+      "val_pr_auc": 0.5492,
+      "val_recall": 0.3549,
+      "train_auc": 0.805,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "150",
+        "colsample_bytree": "0.6",
+        "n_estimators": "700",
+        "subsample": "0.8",
+        "learning_rate": "0.02",
+        "reg_lambda": "20.0",
+        "max_depth": "3",
+        "class_weight": "None",
+        "num_leaves": "6"
+      },
+      "notes": "The regularized LightGBM (exp 4) is best with a small overfit gap, so I'm pushing further in that direction: shallower trees, more min_child_samples, lower learning rate with more trees, and stronger L2 to see if the trend continues."
+    },
+    {
+      "rank": 12,
+      "run_id": "431c600b29d04becba52f51546425a47",
+      "experiment_number": 3,
+      "model_type": "random_forest",
+      "val_auc": 0.7815,
+      "val_pr_auc": 0.5522,
+      "val_recall": 0.3444,
+      "train_auc": 0.8128,
+      "n_features": 23,
+      "params": {
+        "n_estimators": "300",
+        "max_depth": "8",
+        "class_weight": "None",
+        "max_features": "sqrt",
+        "min_samples_leaf": "20"
+      },
+      "notes": "Still need to see how random forest and mlp perform; a moderately regularized RF gives a second tree-based reference point before I regularize LightGBM to address its 0.14 overfit gap."
+    },
+    {
+      "rank": 13,
+      "run_id": "5ee0e6731a7741ab889171c29c8de4bf",
+      "experiment_number": 2,
+      "model_type": "lightgbm",
+      "val_auc": 0.781,
+      "val_pr_auc": 0.5516,
+      "val_recall": 0.3587,
+      "train_auc": 0.9224,
+      "n_features": 23,
+      "params": {
+        "min_child_samples": "20",
+        "colsample_bytree": "0.8",
+        "n_estimators": "300",
+        "subsample": "0.8",
+        "learning_rate": "0.05",
+        "reg_lambda": "1.0",
+        "max_depth": "-1",
+        "class_weight": "None",
+        "num_leaves": "31"
+      },
+      "notes": "Linear baseline gives 0.724 with no overfit; try LightGBM with moderate defaults to see how much non-linear signal exists in the PAY_* and bill features."
+    },
+    {
+      "rank": 14,
+      "run_id": "191d88a4e26e416189b94b52e67eb7e1",
+      "experiment_number": 5,
+      "model_type": "mlp",
+      "val_auc": 0.7668,
+      "val_pr_auc": 0.5258,
+      "val_recall": 0.3828,
+      "train_auc": 0.7904,
+      "n_features": 23,
+      "params": {
+        "alpha": "0.001",
+        "hidden_layer_sizes": "[64, 32]",
+        "max_iter": "300",
+        "learning_rate_init": "0.001"
+      },
+      "notes": "MLP is the only model family not yet tried; need to know whether it carries any signal before focusing on LightGBM refinement. LightGBM (0.7834) and RF (0.7815) are close, so remaining headroom is likely small and tuning comes after this family check."
+    },
+    {
+      "rank": 15,
+      "run_id": "bf23223c03654bab9f866877128bd7ff",
+      "experiment_number": 1,
+      "model_type": "logistic_regression",
+      "val_auc": 0.7242,
+      "val_pr_auc": 0.4978,
+      "val_recall": 0.2487,
+      "train_auc": 0.73,
+      "n_features": 23,
+      "params": {
+        "class_weight": "None",
+        "max_iter": "500",
+        "C": "1.0"
+      },
+      "notes": "Start with a fast linear baseline to establish a reference validation AUC before exploring tree and neural model families."
+    }
+  ],
+  "tokens": {
+    "claude-sonnet-5-5": [
+      45161,
+      3378
+    ],
+    "claude-haiku-5-5": [
+      49387,
+      4582
+    ]
+  },
+  "cost_usd": 0.1313,
+  "experiment_name": "session-20261022-145515",
+  "profile": {
+    "rows_train": 18000,
+    "rows_validation": 6000,
+    "n_features": 23,
+    "target": "default",
+    "positive_rate": 0.2212,
+    "numeric_features": [
+      "LIMIT_BAL",
+      "SEX",
+      "EDUCATION",
+      "MARRIAGE",
+      "AGE",
+      "PAY_0",
+      "PAY_2",
+      "PAY_3",
+      "PAY_4",
+      "PAY_5",
+      "PAY_6",
+      "BILL_AMT1",
+      "BILL_AMT2",
+      "BILL_AMT3",
+      "BILL_AMT4",
+      "BILL_AMT5",
+      "BILL_AMT6",
+      "PAY_AMT1",
+      "PAY_AMT2",
+      "PAY_AMT3",
+      "PAY_AMT4",
+      "PAY_AMT5",
+      "PAY_AMT6"
+    ],
+    "categorical_features": [],
+    "missing_values": {},
+    "top_correlations_with_target": {
+      "PAY_0": 0.335,
+      "PAY_2": 0.264,
+      "PAY_3": 0.238,
+      "PAY_4": 0.217,
+      "PAY_5": 0.202,
+      "PAY_6": 0.185,
+      "LIMIT_BAL": 0.165,
+      "PAY_AMT1": 0.071
+    },
+    "models_available": {
+      "logistic_regression": "Linear baseline (scikit-learn). Fast, interpretable.",
+      "random_forest": "Bagged decision trees (scikit-learn).",
+      "lightgbm": "Gradient-boosted trees (LightGBM). Usually strongest on tables.",
+      "mlp": "Small neural network (scikit-learn MLPClassifier)."
+    },
+    "budget": 15
+  },
+  "models": {
+    "planner": "claude-sonnet-5-5",
+    "experimenter": "claude-haiku-5-5"
+  }
+}
