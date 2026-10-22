@@ -1,0 +1,30 @@
+# One command starts both sites:
+#   docker compose up --build
+#   App:    http://localhost:8501
+#   MLflow: http://localhost:5050
+#
+# The project folder is mounted at the SAME path inside the containers, so the
+# app and MLflow share your existing mlflow.db, runs, reports and data.
+services:
+  app:
+    build: .
+    image: automl-agent
+    ports: ["8501:8501"]
+    env_file:
+      - path: .env
+        required: false
+    volumes: ["${PWD}:${PWD}"]
+    working_dir: ${PWD}
+    command: >
+      streamlit run src/app.py --server.address=0.0.0.0 --server.port=8501
+      --server.headless=true
+
+  mlflow:
+    build: .            # same image as the app (cached, so it only builds once)
+    image: automl-agent
+    ports: ["5050:5000"]
+    volumes: ["${PWD}:${PWD}"]
+    working_dir: ${PWD}
+    command: >
+      mlflow ui --backend-store-uri sqlite:///mlflow.db --host 0.0.0.0 --port 5000
+      --allowed-hosts "*"
