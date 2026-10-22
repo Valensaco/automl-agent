@@ -261,6 +261,7 @@ class ExperimentSession:
         if runs.empty or "metrics.val_auc" not in runs.columns:
             return []
         runs = runs[runs["metrics.val_auc"].notna()]   # skip the FINAL-test run
+        runs = runs[runs["run_id"].isin(self.history)]  # only this session's runs
         rows = []
         for _, r in runs.head(top_n).iterrows():
             rows.append({
