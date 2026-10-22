@@ -41,10 +41,11 @@ def main():
     cur.execute("UPDATE experiments SET lifecycle_stage='deleted' WHERE CAST(experiment_id AS TEXT) "
                 f"NOT IN ({','.join('?' * len(keep_ids))})", tuple(keep_ids))
 
-    # rewrite artifact paths: file:///Users/.../mlartifacts/x -> file:///tmp/snap/mlartifacts/x
-    old, new = SRC_ART.as_uri(), Path(SPACE_DIR, "mlartifacts").as_uri()
-    cur.execute("UPDATE experiments SET artifact_location = REPLACE(artifact_location, ?, ?)", (old, new))
-    cur.execute("UPDATE runs SET artifact_uri = REPLACE(artifact_uri, ?, ?)", (old, new))
+    # rewrite artifact paths: file:///<anything>/mlartifacts/x -> file:///tmp/snap/mlartifacts/x
+    new = f"file://{SPACE_DIR}"
+    for table, col in (("experiments", "artifact_location"), ("runs", "artifact_uri")):
+        cur.execute(f"UPDATE {table} SET {col} = ? || substr({col}, instr({col}, '/mlartifacts/')) "
+                    f"WHERE instr({col}, '/mlartifacts/') > 0", (new,))
     con.commit()
     con.execute("VACUUM")
     con.close()

@@ -48,6 +48,9 @@ h1 {font-weight: 650; letter-spacing: -0.02em; margin-bottom: 0 !important;}
 [data-testid="stChatMessage"] {background: #FFFFFF; border: 1px solid #E3E8EC;
                                border-radius: 8px; padding: 0.6rem 0.8rem;}
 [data-testid="stMetricValue"] {font-size: 1.55rem; font-weight: 600;}
+/* during a replay or live run, hide leftovers from the previous screen */
+[class*="st-key-view-"] [data-stale="true"] {display: none;}
+[class*="st-key-view-"] [data-testid="stChatMessage"]:has([data-stale="true"]):not(:has([data-stale="false"])) {display: none;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -454,14 +457,19 @@ with tab_run:
         else:
             with st.spinner("Loading data..."):
                 session = ExperimentSession.from_prepared_splits(budget=budget)
-        result = run_live(session, api_key)
+        st.session_state.view_id = st.session_state.get("view_id", 0) + 1
+        with st.container(key=f"view-{st.session_state.view_id}"):
+            result = run_live(session, api_key)
         if result:
             st.session_state.summary = result
             st.session_state.replayed = True
     elif "summary" in st.session_state:
         first_visit = not st.session_state.get("replayed", False)
         st.session_state.replayed = True
-        show_run(st.session_state.summary, animate=first_visit or replay)
+        if replay:   # new key = fresh screen, so old messages don't linger faded
+            st.session_state.view_id = st.session_state.get("view_id", 0) + 1
+        with st.container(key=f"view-{st.session_state.get('view_id', 0)}"):
+            show_run(st.session_state.summary, animate=first_visit or replay)
     else:
         st.info("No runs yet. Set a budget in the sidebar and click **Run agent**.")
 
