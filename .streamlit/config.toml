@@ -1,0 +1,13 @@
+[theme]
+base = "light"
+primaryColor = "#0194E2"
+backgroundColor = "#F5F7F9"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#11171C"
+font = "sans serif"
+borderColor = "#DDE3E8"
+baseRadius = "6px"
+showWidgetBorder = true
+
+[browser]
+gatherUsageStats = false

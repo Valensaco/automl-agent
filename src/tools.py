@@ -40,6 +40,7 @@ ROOT = Path(__file__).resolve().parent.parent
 TRACKING_URI = f"sqlite:///{ROOT / 'mlflow.db'}"
 ARTIFACTS = ROOT / "mlartifacts"
 SESSIONS = ROOT / "data" / "sessions"
+MAX_ROWS = 50_000
 
 # ---------------------------------------------------------------------------
 # Models the agent may choose, and the settings it is allowed to change.
@@ -140,6 +141,9 @@ class ExperimentSession:
     def from_prepared_splits(cls, budget: int = 15, name: str | None = None):
         """Use the credit card default splits made by prepare_data.py."""
         d = ROOT / "data"
+        if not (d / "splits" / "train.csv").exists():   # e.g. fresh cloud deploy
+            from prepare_data import main as prepare
+            prepare()
         return cls(pd.read_csv(d / "splits" / "train.csv"),
                    pd.read_csv(d / "splits" / "val.csv"),
                    d / "locked" / "test.csv", target="default",
@@ -150,6 +154,12 @@ class ExperimentSession:
                        name: str | None = None):
         """For any uploaded CSV: split 60/20/20 and lock the test part on disk."""
         df = df.dropna(subset=[target]).copy()
+        if len(df) > MAX_ROWS:                     # keep runs fast
+            df = df.sample(MAX_ROWS, random_state=SEED)
+        # drop text columns with too many unique values (IDs, names, free text)
+        drop = [c for c in df.columns if c != target and df[c].dtype == object
+                and df[c].nunique() > 50]
+        df = df.drop(columns=drop)
         if df[target].nunique() != 2:
             raise ValueError("Target must have exactly 2 classes (binary classification).")
         classes = sorted(df[target].unique(), key=str)
