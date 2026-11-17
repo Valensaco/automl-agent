@@ -4,7 +4,7 @@
 
 A planner agent reads the experiment log, decides what to try next and explains why. An experimenter agent trains the model. They repeat until the budget runs out, then the best model is tested once on data neither agent has ever seen.
 
-**[▶ Live app](LIVE_APP_URL)** · **[📊 MLflow experiment log](MLFLOW_URL)**
+**[▶ Live app](https://valensaco-automl-agent.streamlit.app/)** · **[📊 MLflow experiment log](MLFLOW_URL)**
 
 ![The agents at work](docs/agent-run.gif)
 
