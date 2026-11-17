@@ -6,6 +6,8 @@ A planner agent reads the experiment log, decides what to try next and explains 
 
 **[▶ Live app](https://valensaco-automl-agent.streamlit.app/)**
 
+> No API key needed to explore: the app replays a saved 15-experiment run. Running a new experiment needs your own Anthropic API key.
+
 ![The agents at work](docs/agent-run.gif)
 
 ---
